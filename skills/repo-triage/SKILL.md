@@ -77,9 +77,12 @@ delivery. The script itself does no GitHub I/O — that keeps auth in one place
 ## What the script does
 
 - Reads the plan from stdin (or `--plan-file <path>`).
-- Writes it to `$OPENCLAW_TRIAGE_DIR/YYYY-MM-DD.md`, defaulting to
-  `~/.openclaw/triage/` (overwrites if re-run).
-- Updates symlink `latest.md` → today's file.
+- Writes it to `$OPENCLAW_TRIAGE_DIR/` (default `~/.openclaw/triage/`),
+  overwriting if re-run. Filename format:
+  - Default: `YYYY-MM-DD.md`
+  - Dendron (`$OPENCLAW_DENDRON_PREFIX` set): `<prefix>.YYYY.MM.DD.md`,
+    e.g. `work.triage.2026.05.22.md`
+- Updates symlink `<prefix>.latest.md` (Dendron) or `latest.md` → today's file.
 - Fires a macOS banner: title `openClaw triage`, body = `--summary` value.
   Clicking the banner (when `terminal-notifier` is installed) opens
   today's file — in Obsidian if `$OPENCLAW_OBSIDIAN_VAULT` is set,

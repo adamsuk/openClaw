@@ -63,42 +63,52 @@ printf '2026-05-22 · adamsuk/openClaw\n\nTop priorities:\n- review PR #4 (stale
 ```
 
 Expect: a banner from "openClaw triage", the plan echoed to stdout, and
-the file `~/.openclaw/triage/<today>.md` written.
+a file written to `$OPENCLAW_TRIAGE_DIR` (default `~/.openclaw/triage/`).
+Filename is `YYYY-MM-DD.md` without Dendron config, or
+`<prefix>.YYYY.MM.DD.md` with it (see §5).
 
-## 5. Obsidian integration (optional, recommended)
+## 5. Obsidian + Dendron integration (optional, recommended)
 
-If you use [ObsidianClaw](https://www.obsidianclaw.ai/), point the triage
-output into your vault so each morning's brief becomes a real note —
-searchable, backlinkable, and transcludable into your daily note.
-
-Set three env vars in your shell profile (`~/.zshrc` or equivalent),
-replacing the paths with your vault location:
+If you use [ObsidianClaw](https://www.obsidianclaw.ai/) with
+[Dendron](https://www.dendron.so/) naming conventions, set these env vars
+in your shell profile (`~/.zshrc` or equivalent):
 
 ```sh
-export OPENCLAW_OBSIDIAN_VAULT="Vault"                       # vault name as Obsidian knows it
-export OPENCLAW_OBSIDIAN_VAULT_PATH="$HOME/Vault"            # vault root on disk
-export OPENCLAW_TRIAGE_DIR="$OPENCLAW_OBSIDIAN_VAULT_PATH/Inbox/triage"
+export OPENCLAW_OBSIDIAN_VAULT="Vault"                    # vault name as Obsidian knows it
+export OPENCLAW_OBSIDIAN_VAULT_PATH="$HOME/Vault"         # vault root on disk
+
+# Dendron: notes live flat at vault root, hierarchy is encoded in the filename.
+# Set OPENCLAW_TRIAGE_DIR to vault root (or your notes/ subfolder if using Dendron v2).
+export OPENCLAW_TRIAGE_DIR="$OPENCLAW_OBSIDIAN_VAULT_PATH"
+
+# Dendron prefix — sets the hierarchy and switches the date format to YYYY.MM.DD.
+# Produces notes like: work.triage.2026.05.22.md
+export OPENCLAW_DENDRON_PREFIX="work.triage"
 ```
 
-Reload your shell, then re-run the section 4 smoke test. Expect the
-banner to fire as before — but clicking it now opens today's note **in
-Obsidian** (via `obsidian://open?vault=…&file=…`) instead of the default
-markdown app. If you didn't install `terminal-notifier` in section 0,
-the banner still appears but the click does nothing.
+Reload your shell, then re-run the section 4 smoke test. Expect:
+- File written as `$OPENCLAW_TRIAGE_DIR/work.triage.2026.05.22.md`
+- Symlink updated: `work.triage.latest.md` → today's file
+- Banner fires; click opens `work.triage.2026.05.22` **in Obsidian**
 
-Daily-note template snippet — drop this in your daily note to pull in
-today's brief automatically:
+Daily-note template snippet (Dendron date format):
 
 ```markdown
 ## Morning triage
-![[Inbox/triage/{{date:YYYY-MM-DD}}]]
+![[work.triage.{{date:YYYY.MM.DD}}]]
 ```
 
-(Adjust the path if you chose a different `OPENCLAW_TRIAGE_DIR`.)
+Adjust the prefix to match your `OPENCLAW_DENDRON_PREFIX` if you chose
+something different (e.g. `daily.standup` or `areas.eng.triage`).
 
-Caveat: spaces in vault names / triage paths are URL-encoded by the
-script. Other unusual characters (`?`, `#`, `&`) are not — keep the
-vault name and triage subdir alphanumeric/dashes to be safe.
+**Without Dendron** (plain Obsidian, no prefix): set `OPENCLAW_TRIAGE_DIR`
+to a subfolder inside your vault instead, e.g.
+`$OPENCLAW_OBSIDIAN_VAULT_PATH/Inbox/triage`, and omit
+`OPENCLAW_DENDRON_PREFIX`. The transclusion is then
+`![[Inbox/triage/{{date:YYYY-MM-DD}}]]`.
+
+Caveat: spaces in vault names / paths are URL-encoded. Other unusual
+characters (`?`, `#`, `&`) are not — keep names alphanumeric/dots/dashes.
 
 ## 6. Run via the agent
 

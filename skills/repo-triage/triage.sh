@@ -2,10 +2,15 @@
 # usage: triage.sh --summary "<banner text>" [--plan-file <path>]
 #        echo "$plan" | triage.sh --summary "3 PRs, 1 CI red"
 #
-# Saves a triage action plan to ~/.openclaw/triage/YYYY-MM-DD.md (override
-# with $OPENCLAW_TRIAGE_DIR), updates a `latest.md` symlink, fires a macOS
+# Saves a triage action plan to $OPENCLAW_TRIAGE_DIR (default
+# ~/.openclaw/triage/), updates a `latest` symlink, fires a macOS
 # notification with the short summary, and echoes the full plan to stdout for
 # the caller to relay.
+#
+# Filename convention:
+#   Default (no $OPENCLAW_DENDRON_PREFIX):  YYYY-MM-DD.md
+#   Dendron ($OPENCLAW_DENDRON_PREFIX set): <prefix>.YYYY.MM.DD.md
+#     e.g. OPENCLAW_DENDRON_PREFIX=work.triage → work.triage.2026.05.22.md
 #
 # If terminal-notifier is installed, clicking the banner opens today's file.
 # If $OPENCLAW_OBSIDIAN_VAULT + $OPENCLAW_OBSIDIAN_VAULT_PATH are set and the
@@ -76,13 +81,22 @@ fi
 triage_dir="${OPENCLAW_TRIAGE_DIR:-$HOME/.openclaw/triage}"
 mkdir -p "$triage_dir"
 
-today=$(date +%Y-%m-%d)
-out_file="${triage_dir}/${today}.md"
+# Dendron uses dot-separated hierarchy and dot-delimited dates.
+# Plain mode keeps the previous YYYY-MM-DD.md format.
+dendron_prefix="${OPENCLAW_DENDRON_PREFIX:-}"
+if [ -n "$dendron_prefix" ]; then
+    today=$(date +%Y.%m.%d)
+    out_file="${triage_dir}/${dendron_prefix}.${today}.md"
+    latest_link="${triage_dir}/${dendron_prefix}.latest.md"
+else
+    today=$(date +%Y-%m-%d)
+    out_file="${triage_dir}/${today}.md"
+    latest_link="${triage_dir}/latest.md"
+fi
+
 printf '%s\n' "$plan" > "$out_file"
 
-# Refresh the `latest.md` symlink. ln -sf is portable; rm-then-ln avoids
-# stale-dir-symlink edge case on macOS.
-latest_link="${triage_dir}/latest.md"
+# Refresh the latest symlink. rm-then-ln avoids stale-dir-symlink edge case on macOS.
 rm -f "$latest_link"
 ln -s "$out_file" "$latest_link"
 
