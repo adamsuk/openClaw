@@ -77,12 +77,16 @@ delivery. The script itself does no GitHub I/O — that keeps auth in one place
 ## What the script does
 
 - Reads the plan from stdin (or `--plan-file <path>`).
-- Writes it to `~/.openclaw/triage/YYYY-MM-DD.md` (overwrites if re-run).
-- Updates symlink `~/.openclaw/triage/latest.md` → today's file.
+- Writes it to `$OPENCLAW_TRIAGE_DIR/YYYY-MM-DD.md`, defaulting to
+  `~/.openclaw/triage/` (overwrites if re-run).
+- Updates symlink `latest.md` → today's file.
 - Fires a macOS banner: title `openClaw triage`, body = `--summary` value.
+  Clicking the banner (when `terminal-notifier` is installed) opens
+  today's file — in Obsidian if `$OPENCLAW_OBSIDIAN_VAULT` is set,
+  otherwise in the default markdown app.
 - Prints the full plan to stdout.
 
-No network calls. State limited to `~/.openclaw/triage/`. macOS-only.
+No network calls. State limited to the triage dir. macOS-only.
 
 ## Scheduled runs
 

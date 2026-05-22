@@ -2,9 +2,14 @@
 # usage: triage.sh --summary "<banner text>" [--plan-file <path>]
 #        echo "$plan" | triage.sh --summary "3 PRs, 1 CI red"
 #
-# Saves a triage action plan to ~/.openclaw/triage/YYYY-MM-DD.md, updates a
-# `latest.md` symlink, fires a macOS notification with the short summary, and
-# echoes the full plan to stdout for the caller to relay.
+# Saves a triage action plan to ~/.openclaw/triage/YYYY-MM-DD.md (override
+# with $OPENCLAW_TRIAGE_DIR), updates a `latest.md` symlink, fires a macOS
+# notification with the short summary, and echoes the full plan to stdout for
+# the caller to relay.
+#
+# If terminal-notifier is installed, clicking the banner opens today's file.
+# If $OPENCLAW_OBSIDIAN_VAULT + $OPENCLAW_OBSIDIAN_VAULT_PATH are set and the
+# file lives inside the vault, the click opens the note in Obsidian instead.
 set -eu
 
 summary=""
@@ -83,8 +88,36 @@ ln -s "$out_file" "$latest_link"
 
 # Banner — title fixed, body = summary. Truncate hard at 240 chars so macOS
 # doesn't silently drop the notification.
-if command -v osascript >/dev/null 2>&1; then
-    banner=$(printf '%s' "$summary" | cut -c1-240)
+banner=$(printf '%s' "$summary" | cut -c1-240)
+
+# Build the click action. Preference order:
+#   1. If OPENCLAW_OBSIDIAN_VAULT and OPENCLAW_OBSIDIAN_VAULT_PATH are set, and
+#      the saved file lives inside the vault, open it via obsidian:// so it
+#      lands in the user's vault rather than the default markdown app.
+#   2. Otherwise, plain `open <file>`.
+# Spaces are the only realistic offenders in vault names / triage paths, so a
+# single sed pass is enough — document the assumption in SETUP.md.
+click_action="open '$out_file'"
+if [ -n "${OPENCLAW_OBSIDIAN_VAULT:-}" ] && [ -n "${OPENCLAW_OBSIDIAN_VAULT_PATH:-}" ]; then
+    case "$out_file" in
+        "$OPENCLAW_OBSIDIAN_VAULT_PATH"/*)
+            rel="${out_file#"$OPENCLAW_OBSIDIAN_VAULT_PATH"/}"
+            vault_enc=$(printf '%s' "$OPENCLAW_OBSIDIAN_VAULT" | sed 's| |%20|g')
+            rel_enc=$(printf '%s' "$rel" | sed 's| |%20|g')
+            click_action="open 'obsidian://open?vault=${vault_enc}&file=${rel_enc}'"
+            ;;
+    esac
+fi
+
+# terminal-notifier supports click actions; osascript does not. Fall back
+# gracefully so the script still works on a fresh Mac without Homebrew.
+if command -v terminal-notifier >/dev/null 2>&1; then
+    terminal-notifier \
+        -title "openClaw triage" \
+        -message "$banner" \
+        -execute "$click_action" \
+        >/dev/null 2>&1 || true
+elif command -v osascript >/dev/null 2>&1; then
     escaped=$(printf '%s' "$banner" | sed 's/\\/\\\\/g; s/"/\\"/g')
     osascript -e "display notification \"${escaped}\" with title \"openClaw triage\"" >/dev/null 2>&1 || true
 fi

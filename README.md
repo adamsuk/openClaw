@@ -13,7 +13,7 @@ load these skills, follow [INSTALL.md](./INSTALL.md).
 | Skill | What it does |
 | --- | --- |
 | [`hello`](./skills/hello/) | Greets a person by name and shows a macOS notification banner. Smoke test for the skill loader. |
-| [`repo-triage`](./skills/repo-triage/) | 150-word morning brief across your GitHub repos — review-blocked PRs, failing CI, blocked issues. Run via the agent or scheduled with launchd; delivers via macOS notification. See [SETUP.md](./skills/repo-triage/SETUP.md). |
+| [`repo-triage`](./skills/repo-triage/) | 150-word morning brief across your GitHub repos — review-blocked PRs, failing CI, blocked issues. Run via the agent or scheduled with launchd; delivers via macOS notification. Click-to-open routes into Obsidian when ObsidianClaw is in use. See [SETUP.md](./skills/repo-triage/SETUP.md). |
 
 ## Layout
 
