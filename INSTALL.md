@@ -126,8 +126,9 @@ broad — tighten it.
 - **Pair a real chat channel** (Telegram is the easiest first one: BotFather
   token + your chat ID). See <https://docs.openclaw.ai> for per-channel
   pairing flows and `openclaw pairing approve <channel> <code>`.
-- **Build a useful skill** — the next planned skill is a GitHub repo-triage
-  brief for the `adamsuk` org. It will live at `skills/repo-triage/` in this
-  repo.
+- **Load the repo-triage skill** — a 150-word morning brief across your
+  GitHub repos (review-blocked PRs, failing CI, blocked issues), delivered
+  via macOS notification. Symlink + scope + optional launchd schedule are
+  documented in [skills/repo-triage/SETUP.md](./skills/repo-triage/SETUP.md).
 - **Update channel** — `openclaw update --channel beta` if you want
   pre-release features.
