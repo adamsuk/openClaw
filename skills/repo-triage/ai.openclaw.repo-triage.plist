@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  launchd template for the repo-triage skill.
+
+  This fires `openclaw agent` at a fixed time each day, with a prompt that
+  asks the agent to invoke the repo-triage skill. The agent will then call
+  triage.sh, which writes ~/.openclaw/triage/<date>.md and pops a banner.
+
+  Edit the placeholders before installing:
+    {{USER_HOME}}        e.g. /Users/adam
+    {{OPENCLAW_BIN}}     output of `which openclaw`
+    Hour / Minute        when to run (24h, local time)
+
+  Install:
+    cp ai.openclaw.repo-triage.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) \
+        ~/Library/LaunchAgents/ai.openclaw.repo-triage.plist
+    launchctl kickstart -k gui/$(id -u)/ai.openclaw.repo-triage  # dry-run
+
+  Uninstall:
+    launchctl bootout gui/$(id -u) \
+        ~/Library/LaunchAgents/ai.openclaw.repo-triage.plist
+    rm ~/Library/LaunchAgents/ai.openclaw.repo-triage.plist
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.openclaw.repo-triage</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{OPENCLAW_BIN}}</string>
+        <string>agent</string>
+        <string>--message</string>
+        <string>run the repo-triage skill for my morning brief</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>8</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>{{USER_HOME}}/.openclaw/triage/launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{USER_HOME}}/.openclaw/triage/launchd.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
