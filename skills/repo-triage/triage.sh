@@ -136,6 +136,42 @@ elif command -v osascript >/dev/null 2>&1; then
     osascript -e "display notification \"${escaped}\" with title \"openClaw triage\"" >/dev/null 2>&1 || true
 fi
 
+# Post to a Teams channel via Workflows incoming webhook if configured. The
+# plan is already on disk and on the banner — a webhook failure must not fail
+# the run, just warn.
+teams_url="${OPENCLAW_TEAMS_WEBHOOK_URL:-}"
+if [ -n "$teams_url" ]; then
+    if ! command -v jq >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then
+        echo "warning: OPENCLAW_TEAMS_WEBHOOK_URL set but jq and curl are required — skipping Teams post" >&2
+    else
+        teams_title="openClaw triage — ${summary}"
+        teams_payload=$(jq -n \
+            --arg title "$teams_title" \
+            --arg body "$plan" \
+            '{
+              type: "message",
+              attachments: [{
+                contentType: "application/vnd.microsoft.card.adaptive",
+                content: {
+                  type: "AdaptiveCard",
+                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  version: "1.4",
+                  body: [
+                    { type: "TextBlock", text: $title, weight: "Bolder", size: "Medium", wrap: true },
+                    { type: "TextBlock", text: $body, wrap: true }
+                  ]
+                }
+              }]
+            }')
+        if ! curl -fsS -X POST -H 'Content-Type: application/json' \
+                --max-time 15 \
+                --data-binary "$teams_payload" \
+                "$teams_url" >/dev/null 2>&1; then
+            echo "warning: teams webhook post failed (plan still saved locally)" >&2
+        fi
+    fi
+fi
+
 # Echo the plan so the caller (agent) can relay to chat / channel too.
 printf '%s\n' "$plan"
 printf '\n[saved to %s]\n' "$out_file"
