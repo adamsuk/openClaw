@@ -57,6 +57,15 @@
     <dict>
         <key>PATH</key>
         <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <!-- Obsidian / Dendron delivery — remove keys you don't use -->
+        <key>OPENCLAW_OBSIDIAN_VAULT</key>
+        <string>{{OPENCLAW_OBSIDIAN_VAULT}}</string>
+        <key>OPENCLAW_OBSIDIAN_VAULT_PATH</key>
+        <string>{{OPENCLAW_OBSIDIAN_VAULT_PATH}}</string>
+        <key>OPENCLAW_TRIAGE_DIR</key>
+        <string>{{OPENCLAW_TRIAGE_DIR}}</string>
+        <key>OPENCLAW_DENDRON_PREFIX</key>
+        <string>{{OPENCLAW_DENDRON_PREFIX}}</string>
     </dict>
 
     <key>ProcessType</key>

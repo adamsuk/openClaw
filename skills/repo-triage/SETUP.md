@@ -86,7 +86,33 @@ export OPENCLAW_TRIAGE_DIR="$OPENCLAW_OBSIDIAN_VAULT_PATH"
 export OPENCLAW_DENDRON_PREFIX="work.triage"
 ```
 
-Reload your shell, then re-run the section 4 smoke test. Expect:
+Reload your shell, then re-run the section 4 smoke test.
+
+> **Important — launchd and the gateway service don't read your shell profile.**
+> If you run triage via `openclaw agent` (through the gateway service) or via
+> the scheduled launchd job (§7), you must also add these vars to the
+> `EnvironmentVariables` dict in the relevant plist. For the gateway service:
+>
+> ```sh
+> # Edit ~/Library/LaunchAgents/ai.openclaw.gateway.plist and add inside
+> # the existing <dict> under <key>EnvironmentVariables</key>:
+> #
+> #   <key>OPENCLAW_OBSIDIAN_VAULT</key>
+> #   <string>Vault</string>
+> #   <key>OPENCLAW_OBSIDIAN_VAULT_PATH</key>
+> #   <string>/Users/you/Vault</string>
+> #   <key>OPENCLAW_TRIAGE_DIR</key>
+> #   <string>/Users/you/Vault</string>
+> #   <key>OPENCLAW_DENDRON_PREFIX</key>
+> #   <string>work.triage</string>
+>
+> # Then reload:
+> launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/ai.openclaw.gateway.plist \
+>   && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+> ```
+>
+> The repo-triage plist template already has these as `{{placeholders}}`
+> that the sed command in §7 fills in. Expect:
 - File written as `$OPENCLAW_TRIAGE_DIR/work.triage.2026.05.22.md`
 - Symlink updated: `work.triage.latest.md` → today's file
 - Banner fires; click opens `work.triage.2026.05.22` **in Obsidian**
@@ -126,6 +152,10 @@ Copy and edit the launchd template:
 ```sh
 sed -e "s|{{USER_HOME}}|$HOME|g" \
     -e "s|{{OPENCLAW_BIN}}|$(which openclaw)|g" \
+    -e "s|{{OPENCLAW_OBSIDIAN_VAULT}}|${OPENCLAW_OBSIDIAN_VAULT:-}|g" \
+    -e "s|{{OPENCLAW_OBSIDIAN_VAULT_PATH}}|${OPENCLAW_OBSIDIAN_VAULT_PATH:-}|g" \
+    -e "s|{{OPENCLAW_TRIAGE_DIR}}|${OPENCLAW_TRIAGE_DIR:-}|g" \
+    -e "s|{{OPENCLAW_DENDRON_PREFIX}}|${OPENCLAW_DENDRON_PREFIX:-}|g" \
     ai.openclaw.repo-triage.plist \
     > ~/Library/LaunchAgents/ai.openclaw.repo-triage.plist
 launchctl bootstrap gui/$(id -u) \
