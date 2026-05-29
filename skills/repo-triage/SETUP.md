@@ -58,7 +58,7 @@ The script doesn't touch GitHub — it just delivers a plan. Test it with a
 canned plan:
 
 ```sh
-printf '2026-05-22 · adamsuk/openClaw\n\nTop priorities:\n- review PR #4 (stale 3d)\n- fix CI on main (lint failing since yesterday)\n\nPR reviews waiting: adamsuk/openClaw#4\nCI red: adamsuk/openClaw · lint failing since 2026-05-21\nBlocked issues: none\n\nSuggested next action: kick the lint job, then review #4.\n' \
+printf '**2026-05-22 · [adamsuk/openClaw](https://github.com/adamsuk/openClaw)**\n\n**Top priorities:**\n- review [PR #4](https://github.com/adamsuk/openClaw/pull/4) (stale 3d)\n- fix CI on main (lint failing since yesterday)\n\n**PR reviews waiting:**\n- [#4 Add feature](https://github.com/adamsuk/openClaw/pull/4) (Adam)\n\n**CI red:**\n- [adamsuk/openClaw](https://github.com/adamsuk/openClaw) · lint failing since 2026-05-21\n\n**Blocked issues:**\n- none\n\n**Suggested next action:** kick the lint job, then review #4.\n' \
     | ~/code/openClaw/skills/repo-triage/triage.sh --summary "1 PR waiting, 1 CI red"
 ```
 
@@ -66,6 +66,10 @@ Expect: a banner from "openClaw triage", the plan echoed to stdout, and
 a file written to `$OPENCLAW_TRIAGE_DIR` (default `~/.openclaw/triage/`).
 Filename is `YYYY-MM-DD.md` without Dendron config, or
 `<prefix>.YYYY.MM.DD.md` with it (see §5).
+
+**All PRs, issues, and repo names are rendered as clickable markdown hyperlinks**
+to their GitHub URLs. Opening the file in Obsidian (or any markdown editor)
+lets you click through directly to GitHub.
 
 ## 5. Obsidian + Dendron integration (optional, recommended)
 
@@ -143,7 +147,9 @@ openclaw agent --message "run repo triage"
 ```
 
 Expect the agent to call the skill, gather data via its GitHub tool, and
-fire the same notification — this time with real content.
+fire the same notification — this time with real content. The output note
+will contain clickable markdown hyperlinks to all PRs, issues, and repos
+mentioned, so you can click directly from Obsidian to GitHub.
 
 ## 7. Schedule it (optional)
 

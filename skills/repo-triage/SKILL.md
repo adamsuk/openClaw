@@ -12,7 +12,7 @@ description: |
 # repo-triage
 
 Unified morning brief across the user's active GitHub repositories. Pulls
-review-blocked PRs, failing CI runs, and blocked issues; writes a 150-word
+review-blocked PRs, failing CI runs, and blocked issues; writes a 300-word
 action plan to disk; pops a short macOS banner so the user knows it's ready.
 
 This skill is **agent-driven**: the LLM uses openClaw's built-in GitHub tools
@@ -46,20 +46,26 @@ delivery. The script itself does no GitHub I/O — that keeps auth in one place
      lookback window. Group by workflow; only report the latest failure per
      workflow.
    - Open issues with the `blocked` label, or with no activity > 14 days.
-3. Compose a single action plan, **target 150 words (130–170 acceptable)**,
+3. Compose a single action plan, **target 300 words (350 acceptable)**,
    structured as:
 
    ```
-   Date · repos covered
+   Date · [owner/repo](https://github.com/owner/repo)
 
    Top priorities (3 bullets max, ordered by urgency)
 
-   PR reviews waiting: <list, "owner/repo#123 — title (reviewer)">
-   CI red: <list, "owner/repo · <workflow> failing since <date>">
-   Blocked / stale issues: <list, "owner/repo#456 — title">
+   PR reviews waiting: <list, "[#123 title](https://github.com/owner/repo/pull/123) (reviewer)">
+   CI red: <list, "[owner/repo](https://github.com/owner/repo) · [workflow name](https://github.com/owner/repo/actions/runs/...) failing since <date>")
+   Blocked / stale issues: <list, "[#456 title](https://github.com/owner/repo/issues/456)">
 
    Suggested next action: <one sentence>
    ```
+
+   **All PR numbers, issue numbers, and repo names MUST be rendered as clickable markdown hyperlinks** to their GitHub URLs. Use the standard GitHub URL patterns:
+   - PRs: `https://github.com/owner/repo/pull/123`
+   - Issues: `https://github.com/owner/repo/issues/456`
+   - Repos: `https://github.com/owner/repo`
+   - CI runs: `https://github.com/owner/repo/actions/runs/...`
 
    Be concrete. No filler ("you might want to consider"). Skip empty
    sections entirely rather than writing "nothing here".
