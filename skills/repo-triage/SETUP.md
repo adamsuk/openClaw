@@ -58,7 +58,7 @@ The script doesn't touch GitHub — it just delivers a plan. Test it with a
 canned plan:
 
 ```sh
-printf '2026-05-22 · adamsuk/openClaw\n\nTop priorities:\n- review PR #4 (stale 3d)\n- fix CI on main (lint failing since yesterday)\n\nPR reviews waiting: adamsuk/openClaw#4\nCI red: adamsuk/openClaw · lint failing since 2026-05-21\nBlocked issues: none\n\nSuggested next action: kick the lint job, then review #4.\n' \
+printf '**2026-05-22 · [adamsuk/openClaw](https://github.com/adamsuk/openClaw)**\n\n**Top priorities:**\n- review [PR #4](https://github.com/adamsuk/openClaw/pull/4) (stale 3d)\n- fix CI on main (lint failing since yesterday)\n\n**PR reviews waiting:**\n- [#4 Add feature](https://github.com/adamsuk/openClaw/pull/4) (Adam)\n\n**CI red:**\n- [adamsuk/openClaw](https://github.com/adamsuk/openClaw) · lint failing since 2026-05-21\n\n**Blocked issues:**\n- none\n\n**Suggested next action:** kick the lint job, then review #4.\n' \
     | ~/code/openClaw/skills/repo-triage/triage.sh --summary "1 PR waiting, 1 CI red"
 ```
 
@@ -66,6 +66,10 @@ Expect: a banner from "openClaw triage", the plan echoed to stdout, and
 a file written to `$OPENCLAW_TRIAGE_DIR` (default `~/.openclaw/triage/`).
 Filename is `YYYY-MM-DD.md` without Dendron config, or
 `<prefix>.YYYY.MM.DD.md` with it (see §5).
+
+**All PRs, issues, and repo names are rendered as clickable markdown hyperlinks**
+to their GitHub URLs. Opening the file in Obsidian (or any markdown editor)
+lets you click through directly to GitHub.
 
 ## 5. Obsidian + Dendron integration (optional, recommended)
 
@@ -86,7 +90,58 @@ export OPENCLAW_TRIAGE_DIR="$OPENCLAW_OBSIDIAN_VAULT_PATH"
 export OPENCLAW_DENDRON_PREFIX="work.triage"
 ```
 
-Reload your shell, then re-run the section 4 smoke test. Expect:
+Reload your shell, then re-run the section 4 smoke test.
+
+> **Important — launchd and the gateway service don't read your shell profile.**
+> If you run triage via `openclaw agent` (through the gateway service) or via
+> the scheduled launchd job (§7), the vars must be injected into the gateway
+> process. How depends on how openclaw installed the gateway plist:
+>
+> **Check which pattern you have:**
+> ```sh
+> head -20 ~/Library/LaunchAgents/ai.openclaw.gateway.plist | grep -A2 ProgramArguments
+> ```
+> If the first `<string>` is a path ending in `-env-wrapper.sh`, you have the
+> **env-file pattern** (openclaw's default install). Otherwise you have the
+> **EnvironmentVariables plist pattern**.
+>
+> **Env-file pattern** (env-wrapper install — most common):
+> ```sh
+> # Append vars to the gateway env file:
+> cat >> ~/.openclaw/service-env/ai.openclaw.gateway.env <<'EOF'
+> OPENCLAW_OBSIDIAN_VAULT=Vault
+> OPENCLAW_OBSIDIAN_VAULT_PATH=/Users/you/Vault
+> OPENCLAW_TRIAGE_DIR=/Users/you/Vault
+> OPENCLAW_DENDRON_PREFIX=work.triage
+> EOF
+>
+> # Reload the gateway:
+> launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/ai.openclaw.gateway.plist \
+>   && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+> ```
+>
+> **EnvironmentVariables plist pattern** (non-default install):
+> ```sh
+> # Edit ~/Library/LaunchAgents/ai.openclaw.gateway.plist and add inside
+> # the existing <dict> under <key>EnvironmentVariables</key>
+> # (create the block if absent):
+> #
+> #   <key>OPENCLAW_OBSIDIAN_VAULT</key>
+> #   <string>Vault</string>
+> #   <key>OPENCLAW_OBSIDIAN_VAULT_PATH</key>
+> #   <string>/Users/you/Vault</string>
+> #   <key>OPENCLAW_TRIAGE_DIR</key>
+> #   <string>/Users/you/Vault</string>
+> #   <key>OPENCLAW_DENDRON_PREFIX</key>
+> #   <string>work.triage</string>
+>
+> # Then reload:
+> launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/ai.openclaw.gateway.plist \
+>   && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+> ```
+>
+> The repo-triage plist template already has these as `{{placeholders}}`
+> that the sed command in §7 fills in. Expect:
 - File written as `$OPENCLAW_TRIAGE_DIR/work.triage.2026.05.22.md`
 - Symlink updated: `work.triage.latest.md` → today's file
 - Banner fires; click opens `work.triage.2026.05.22` **in Obsidian**
@@ -117,7 +172,9 @@ openclaw agent --message "run repo triage"
 ```
 
 Expect the agent to call the skill, gather data via its GitHub tool, and
-fire the same notification — this time with real content.
+fire the same notification — this time with real content. The output note
+will contain clickable markdown hyperlinks to all PRs, issues, and repos
+mentioned, so you can click directly from Obsidian to GitHub.
 
 ## 7. Schedule it (optional)
 
@@ -126,6 +183,10 @@ Copy and edit the launchd template:
 ```sh
 sed -e "s|{{USER_HOME}}|$HOME|g" \
     -e "s|{{OPENCLAW_BIN}}|$(which openclaw)|g" \
+    -e "s|{{OPENCLAW_OBSIDIAN_VAULT}}|${OPENCLAW_OBSIDIAN_VAULT:-}|g" \
+    -e "s|{{OPENCLAW_OBSIDIAN_VAULT_PATH}}|${OPENCLAW_OBSIDIAN_VAULT_PATH:-}|g" \
+    -e "s|{{OPENCLAW_TRIAGE_DIR}}|${OPENCLAW_TRIAGE_DIR:-}|g" \
+    -e "s|{{OPENCLAW_DENDRON_PREFIX}}|${OPENCLAW_DENDRON_PREFIX:-}|g" \
     ai.openclaw.repo-triage.plist \
     > ~/Library/LaunchAgents/ai.openclaw.repo-triage.plist
 launchctl bootstrap gui/$(id -u) \

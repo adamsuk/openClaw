@@ -74,8 +74,8 @@ fi
 
 # Soft word-count check. Warn but don't fail — the agent may have a reason.
 word_count=$(printf '%s' "$plan" | wc -w | tr -d ' ')
-if [ "$word_count" -lt 100 ] || [ "$word_count" -gt 200 ]; then
-    echo "warning: plan is ${word_count} words (target 150, range 100–200)" >&2
+if [ "$word_count" -lt 200 ] || [ "$word_count" -gt 400 ]; then
+    echo "warning: plan is ${word_count} words (target 300, range 200–400)" >&2
 fi
 
 triage_dir="${OPENCLAW_TRIAGE_DIR:-$HOME/.openclaw/triage}"
