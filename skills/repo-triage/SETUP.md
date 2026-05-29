@@ -94,12 +94,37 @@ Reload your shell, then re-run the section 4 smoke test.
 
 > **Important — launchd and the gateway service don't read your shell profile.**
 > If you run triage via `openclaw agent` (through the gateway service) or via
-> the scheduled launchd job (§7), you must also add these vars to the
-> `EnvironmentVariables` dict in the relevant plist. For the gateway service:
+> the scheduled launchd job (§7), the vars must be injected into the gateway
+> process. How depends on how openclaw installed the gateway plist:
 >
+> **Check which pattern you have:**
+> ```sh
+> head -20 ~/Library/LaunchAgents/ai.openclaw.gateway.plist | grep -A2 ProgramArguments
+> ```
+> If the first `<string>` is a path ending in `-env-wrapper.sh`, you have the
+> **env-file pattern** (openclaw's default install). Otherwise you have the
+> **EnvironmentVariables plist pattern**.
+>
+> **Env-file pattern** (env-wrapper install — most common):
+> ```sh
+> # Append vars to the gateway env file:
+> cat >> ~/.openclaw/service-env/ai.openclaw.gateway.env <<'EOF'
+> OPENCLAW_OBSIDIAN_VAULT=Vault
+> OPENCLAW_OBSIDIAN_VAULT_PATH=/Users/you/Vault
+> OPENCLAW_TRIAGE_DIR=/Users/you/Vault
+> OPENCLAW_DENDRON_PREFIX=work.triage
+> EOF
+>
+> # Reload the gateway:
+> launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/ai.openclaw.gateway.plist \
+>   && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+> ```
+>
+> **EnvironmentVariables plist pattern** (non-default install):
 > ```sh
 > # Edit ~/Library/LaunchAgents/ai.openclaw.gateway.plist and add inside
-> # the existing <dict> under <key>EnvironmentVariables</key>:
+> # the existing <dict> under <key>EnvironmentVariables</key>
+> # (create the block if absent):
 > #
 > #   <key>OPENCLAW_OBSIDIAN_VAULT</key>
 > #   <string>Vault</string>
