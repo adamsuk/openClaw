@@ -87,9 +87,13 @@ delivery. The script itself does no GitHub I/O — that keeps auth in one place
   Clicking the banner (when `terminal-notifier` is installed) opens
   today's file — in Obsidian if `$OPENCLAW_OBSIDIAN_VAULT` is set,
   otherwise in the default markdown app.
+- Posts an Adaptive Card to a Teams channel if
+  `$OPENCLAW_TEAMS_WEBHOOK_URL` is set (Workflows incoming webhook).
+  Non-fatal on failure — the local plan is the source of truth.
 - Prints the full plan to stdout.
 
-No network calls. State limited to the triage dir. macOS-only.
+Network calls only when `$OPENCLAW_TEAMS_WEBHOOK_URL` is set. State limited
+to the triage dir. macOS-only.
 
 ## Scheduled runs
 

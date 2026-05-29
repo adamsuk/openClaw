@@ -110,7 +110,29 @@ to a subfolder inside your vault instead, e.g.
 Caveat: spaces in vault names / paths are URL-encoded. Other unusual
 characters (`?`, `#`, `&`) are not — keep names alphanumeric/dots/dashes.
 
-## 6. Run via the agent
+## 6. Teams channel (optional)
+
+Post each triage run to a Microsoft Teams channel as an Adaptive Card. Use a
+**Workflows** incoming webhook (the modern replacement for legacy Office 365
+Connectors): in Teams, right-click the target channel → **Workflows** → pick
+the "Post to a channel when a webhook request is received" template → finish
+the prompts → copy the generated URL.
+
+Export it in your shell profile (`~/.zshrc` or equivalent):
+
+```sh
+export OPENCLAW_TEAMS_WEBHOOK_URL="https://prod-XX.westeurope.logic.azure.com:443/workflows/..."
+```
+
+Reload your shell and re-run the section 4 smoke test. Expect a card in the
+channel titled `openClaw triage — <summary>` with the plan body underneath.
+
+Requires `curl` (preinstalled on macOS) and `jq` (`brew install jq` if
+missing). If either is absent or the POST fails (network, expired webhook,
+deleted channel), the script logs a warning and continues — the plan is still
+saved to disk and shown on the macOS banner.
+
+## 7. Run via the agent
 
 ```sh
 openclaw agent --message "run repo triage"
@@ -119,7 +141,7 @@ openclaw agent --message "run repo triage"
 Expect the agent to call the skill, gather data via its GitHub tool, and
 fire the same notification — this time with real content.
 
-## 7. Schedule it (optional)
+## 8. Schedule it (optional)
 
 Copy and edit the launchd template:
 
