@@ -1,7 +1,7 @@
 ---
 name: repo-triage
 description: |
-  Produce a 150-word morning action plan covering open PR reviews, failing
+  Produce a 300-word morning action plan covering open PR reviews, failing
   CI/CD pipelines, and blocked issues across the user's GitHub repositories,
   then deliver it via macOS notification. Use when the user says "run repo
   triage", "morning brief", "what needs my attention today", or the skill is
